@@ -3,10 +3,10 @@ use std::fmt::{Display, Formatter};
 use std::io::Write;
 
 const INPUT_COUNT: usize = 9;
-const INSTRUCTION_COUNT: usize = 1;
+const INSTRUCTION_COUNT: usize = 11;
 
 fn target_tt() -> Vec<bool> {
-    to_truth_table::<9>(target)
+    to_truth_table::<INPUT_COUNT>(target)
 }
 
 fn target(inputs: u32) -> bool {
@@ -71,6 +71,11 @@ impl Display for Sat {
 
 
 fn main() {
+    create_cnf();
+    // decode_output();
+}
+
+fn create_cnf() {
     let mut f = File::create("game_of_life.cnf").unwrap();
 
     let mut sat = Sat::new();
@@ -98,6 +103,18 @@ fn main() {
                 connections[i][side].push(sat.new_lit());
             }
             sat.add_clause(connections[i][side].iter().cloned());
+        }
+
+        for x in 1..(INPUT_COUNT + i) {
+            for y in 0..=x {
+                sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
+            }
+        }
+
+        for y in 1..(INPUT_COUNT + i) {
+            for z in 0..=y {
+                sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
+            }
         }
     }
 
@@ -148,7 +165,7 @@ fn main() {
             //Drive output from inputs
             // ~A & ~B & ~C => (output = truth_tables[i][0])
             for j in 0..8 {
-                let i1 = if j & (1 << 0) != 0 {
+                let i1 = if j & (1 << 2) != 0 {
                     -node_inputs[0]
                 } else {
                     node_inputs[0]
@@ -158,17 +175,39 @@ fn main() {
                 } else {
                     node_inputs[1]
                 };
-                let i3 = if j & (1 << 2) != 0 {
+                let i3 = if j & (1 << 0) != 0 {
                     -node_inputs[2]
                 } else {
                     node_inputs[2]
                 };
 
-                sat.add_clause([i1, i2, i3, output, -truth_tables[i][j]]);
-                sat.add_clause([i1, i2, i3, -output, truth_tables[i][j]]);
+                sat.add_clause([i1, i2, i3, output, -truth_tables[i][7-j]]);
+                sat.add_clause([i1, i2, i3, -output, truth_tables[i][7-j]]);
             }
         }
     }
 
     write!(f, "{}", sat).unwrap();
+}
+
+fn decode_output() {
+    let input = include_str!("../output");
+    let mut nums = input.split_whitespace().map(|s| s.parse::<isize>().unwrap()).skip(2);
+
+    for i in 0..4 {
+        print!("truth table {i}: ");
+        for _ in 0..8 {
+            print!("{}", (nums.next().unwrap() > 0) as u8)
+        }
+        println!();
+        for j in 0..3 {
+            print!("input {j}: ");
+            for _ in 0..5 + i {
+                print!("{}", (nums.next().unwrap() > 0) as u8)
+            }
+            println!();
+        }
+
+        println!();
+    }
 }

@@ -1,0 +1,132 @@
+truth table 0: 10010110
+input 0: 00010
+input 1: 00001
+input 2: 00100
+
+truth table 1: 10010010
+input 0: 100000
+input 1: 010000
+input 2: 000001
+
+truth table 2: 00010111
+input 0: 0000100
+input 1: 0001000
+input 2: 0000010
+
+truth table 3: 00010110
+input 0: 10000000
+input 1: 00000010
+input 2: 00000001
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10010110 3 4 2 =
+10010010 0 1 5 =
+00010111 4 3 5 =
+00010110 0 6 7 =
+
+
+
+
+
+
+
+[false, true, false, false, false]
+
+x1 y1 z1
+x2 y2 z2
+x3 y3 z3
+x4 y4 z4
+x5 y5 z5
+.
+.
+.
+
+~x2 of ~y1
+~x2 of ~y2
+~x3 of ~y1
+~x3 of ~y2
+~x4 of ~y1
+~x4 of ~y2
+~x4 of ~y3
+~x5 of ~y1
+~x5 of ~y2
+~x5 of ~y3
+~x5 of ~y4
+
+
+connections[i][0].find() < connections[i][1].find() < connections[i][2].find()
+5 3 2
+
+
+center
+n1
+n2
+n3
+n4
+01101001 2 4 1
+11100101 5 0 3
+11101000 1 5 2
+11000010 6 7 0
+
+
+
