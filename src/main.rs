@@ -1,9 +1,10 @@
-use std::fs::File;
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
+use std::fs::File;
 use std::io::Write;
 
 const INPUT_COUNT: usize = 9;
-const INSTRUCTION_COUNT: usize = 11;
+const INSTRUCTION_COUNT: usize = 10;
 
 fn target_tt() -> Vec<bool> {
     to_truth_table::<INPUT_COUNT>(target)
@@ -25,17 +26,14 @@ fn to_truth_table<const N: usize>(f: impl Fn(u32) -> bool) -> Vec<bool> {
 struct Sat {
     // Nodes indexed from 1 ..= node_count
     node_count: isize,
-    clauses: Vec<Vec<isize>>
+    clauses: Vec<Vec<isize>>,
 }
 
 impl Sat {
     fn new() -> Self {
         Self {
             node_count: 2,
-            clauses: vec![
-                vec![1],
-                vec![-2]
-            ]
+            clauses: vec![vec![1], vec![-2]],
         }
     }
 
@@ -45,10 +43,14 @@ impl Sat {
     }
 
     fn get_const(&self, b: bool) -> isize {
-        if b { 1 } else { 2 }
+        if b {
+            1
+        } else {
+            2
+        }
     }
 
-    fn add_clause(&mut self, c: impl IntoIterator<Item=isize>) {
+    fn add_clause(&mut self, c: impl IntoIterator<Item = isize>) {
         self.clauses.push(c.into_iter().collect())
     }
 }
@@ -58,7 +60,7 @@ impl Display for Sat {
         writeln!(f, "p cnf {} {}", self.node_count, self.clauses.len())?;
 
         for clause in &self.clauses {
-            for thing in clause{
+            for thing in clause {
                 write!(f, "{thing} ")?;
             }
 
@@ -68,7 +70,6 @@ impl Display for Sat {
         Ok(())
     }
 }
-
 
 fn main() {
     create_cnf();
@@ -103,6 +104,9 @@ fn create_cnf() {
                 connections[i][side].push(sat.new_lit());
             }
             sat.add_clause(connections[i][side].iter().cloned());
+            for pair in connections[i][side].iter().combinations(2) {
+                sat.add_clause(pair.into_iter().map(|x| -x));
+            }
         }
 
         for x in 1..(INPUT_COUNT + i) {
@@ -181,8 +185,8 @@ fn create_cnf() {
                     node_inputs[2]
                 };
 
-                sat.add_clause([i1, i2, i3, output, -truth_tables[i][7-j]]);
-                sat.add_clause([i1, i2, i3, -output, truth_tables[i][7-j]]);
+                sat.add_clause([i1, i2, i3, output, -truth_tables[i][7 - j]]);
+                sat.add_clause([i1, i2, i3, -output, truth_tables[i][7 - j]]);
             }
         }
     }
@@ -192,7 +196,10 @@ fn create_cnf() {
 
 fn decode_output() {
     let input = include_str!("../output");
-    let mut nums = input.split_whitespace().map(|s| s.parse::<isize>().unwrap()).skip(2);
+    let mut nums = input
+        .split_whitespace()
+        .map(|s| s.parse::<isize>().unwrap())
+        .skip(2);
 
     for i in 0..4 {
         print!("truth table {i}: ");
