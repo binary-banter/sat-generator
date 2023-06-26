@@ -197,7 +197,7 @@ fn main() {
 }
 
 fn create_cnf(input_count: usize, instruction_count: usize) {
-    let mut f = File::create("game_of_life.cnf").unwrap();
+    let mut f = File::create(format!("game_of_life_inp{input_count}_ins{instruction_count}.cnf")).unwrap();
 
     let mut sat = Sat::new();
 
