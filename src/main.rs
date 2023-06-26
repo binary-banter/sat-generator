@@ -1,13 +1,11 @@
+use std::env;
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::Write;
 
-const INPUT_COUNT: usize = 8;
-const INSTRUCTION_COUNT: usize = 7;
-
-fn target_tt() -> Vec<bool> {
-    to_truth_table::<INPUT_COUNT>(target)
+fn target_tt(input_count: usize) -> Vec<bool> {
+    to_truth_table(input_count, target)
 }
 
 fn target(inputs: u32) -> bool {
@@ -15,59 +13,13 @@ fn target(inputs: u32) -> bool {
     count == 3 || (inputs & 1 != 0 && count == 2)
 }
 
-fn to_truth_table<const N: usize>(f: impl Fn(u32) -> bool) -> Vec<bool> {
+fn to_truth_table(input_count: usize, f: impl Fn(u32) -> bool) -> Vec<bool> {
     let mut array = Vec::new();
-    for i in 0..1 << N {
+    for i in 0..1 << input_count {
         array.push(f(i));
     }
     array
 }
-
-// 00 center
-// 01 a0
-// 02 a1
-// 03 a2
-// 04 a3
-// 05 a4
-// 06 a5
-// 07 a6
-// 08 a7
-// 09 a8
-// 10 b0
-// 11 a9
-// 12 b1
-// 13 aA
-// 14 b2
-// 15 at_least_one
-// 16 more_than_one
-// 17 two_or_three
-// 18 center again
-
-//    // stage 0
-//     unsigned int a8;
-
-//     unsigned int b0;
-
-//     unsigned int a9;
-
-//     unsigned int b1;
-
-//
-//     // stage 1
-//     unsigned int aA;
-
-//     unsigned int b2;
-
-//
-//     // magic phase
-//     unsigned int at_least_one;
-
-//     unsigned int more_than_one;
-
-//     unsigned int two_or_three;
-
-//     asm("lop3.b32 %0, %1, %2, %3, 0b11110110;" : "=r"(center) : "r"(center), "r"(aA), "r"(a9));
-//     asm("lop3.b32 %0, %1, %2, %3, 0b01000000;" : "=r"(center) : "r"(center), "r"(two_or_three), "r"(more_than_one));
 
 fn add_our_solution_clauses(sat: &mut Sat, truth_tables: &Vec<Vec<isize>>, connections: &Vec<[Vec<isize>; 3]>) {
     // asm("lop3.b32 %0, %1, %2, %3, 0b10010110;" : "=r"(a8) : "r"(a2), "r"(a1), "r"(a0));
@@ -237,20 +189,23 @@ impl Display for Sat {
 }
 
 fn main() {
-    create_cnf();
+    let input_count = env::args().nth(1).unwrap().parse::<usize>().unwrap();
+    let instruction_count = env::args().nth(2).unwrap().parse::<usize>().unwrap();
+    
+    create_cnf(input_count, instruction_count);
     // decode_output();
 }
 
-fn create_cnf() {
+fn create_cnf(input_count: usize, instruction_count: usize) {
     let mut f = File::create("game_of_life.cnf").unwrap();
 
     let mut sat = Sat::new();
 
-    let target_tt = target_tt();
+    let target_tt = target_tt(input_count);
 
-    let mut truth_tables = vec![vec![]; INSTRUCTION_COUNT];
+    let mut truth_tables = vec![vec![]; instruction_count];
     let mut connections = Vec::new();
-    for i in 0..INSTRUCTION_COUNT {
+    for i in 0..instruction_count {
         connections.push([vec![], vec![], vec![]]);
 
         // make truth tables
@@ -261,7 +216,7 @@ fn create_cnf() {
         // make connections
         // ... for inputs
         for side in 0..3 {
-            for _ in 0..INPUT_COUNT {
+            for _ in 0..input_count {
                 connections[i][side].push(sat.new_lit());
             }
             // ... for previous nodes
@@ -275,19 +230,19 @@ fn create_cnf() {
         }
 
         // Prune: Inputs are ordered small...large
-        for x in 1..(INPUT_COUNT + i) {
+        for x in 1..(input_count + i) {
             for y in 0..=x {
                 sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
             }
         }
-        for y in 1..(INPUT_COUNT + i) {
+        for y in 1..(input_count + i) {
             for z in 0..=y {
                 sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
             }
         }
 
         // Prune: Inputs 0..8 are used in order
-        for y in 2..INPUT_COUNT{
+        for y in 2..input_count{
             for side in 0..3 {
                 let mut below = vec![-connections[i][side][y]];
                 for j in 0..=i {
@@ -300,10 +255,10 @@ fn create_cnf() {
         }
 
         // Prune: Instructions are used in order
-        for y in INPUT_COUNT+1..INPUT_COUNT + i{
+        for y in input_count+1..input_count + i{
             for side in 0..3 {
                 let mut below = vec![-connections[i][side][y]];
-                for j in (y - INPUT_COUNT + 1)..=i {
+                for j in (y - input_count + 1)..=i {
                     for j_side in 0..3 {
                         below.push(connections[j][j_side][y - 1]);
                     }
@@ -314,9 +269,9 @@ fn create_cnf() {
     }
 
     // Prune: Inputs are all used
-    for input in 0..INPUT_COUNT {
+    for input in 0..input_count {
         let mut vec = Vec::new();
-        for i in 0..INSTRUCTION_COUNT {
+        for i in 0..instruction_count {
             for side in 0..3 {
                 vec.push(connections[i][side][input]);
             }
@@ -325,11 +280,11 @@ fn create_cnf() {
     }
 
     // Prune: All outputs of instructions are used
-    for i in 0 .. INSTRUCTION_COUNT - 1 {
+    for i in 0 .. instruction_count - 1 {
         let mut vec = Vec::new();
-        for j in i+1 .. INSTRUCTION_COUNT {
+        for j in i+1 .. instruction_count {
             for side in 0..3 {
-                vec.push(connections[j][side][i + INPUT_COUNT]);
+                vec.push(connections[j][side][i + input_count]);
             }
         }
         sat.add_clause(vec);
@@ -337,40 +292,40 @@ fn create_cnf() {
 
 
 
-    for input in 0..(1 << INPUT_COUNT) {
+    for input in 0..(1 << input_count) {
         let mut inputs = vec![];
-        for i in 0..INPUT_COUNT {
+        for i in 0..input_count {
             inputs.push(sat.get_const(input & (1 << i) != 0));
         }
 
         let mut outputs: Vec<isize> = vec![];
 
-        for _ in 0..INSTRUCTION_COUNT - 1 {
+        for _ in 0..instruction_count - 1 {
             outputs.push(sat.new_lit());
         }
         let output = target_tt[input];
         outputs.push(sat.get_const(output));
 
-        for i in 0..INSTRUCTION_COUNT {
+        for i in 0..instruction_count {
             // Generate inputs
             let mut node_inputs = vec![];
 
             for side in 0..3 {
                 let input_node = sat.new_lit();
-                for j in 0..INPUT_COUNT {
+                for j in 0..input_count {
                     // connections[i][side][j] -> (inputs[j] = input_node)
                     sat.add_clause([-connections[i][side][j], -inputs[j], input_node]);
                     sat.add_clause([-connections[i][side][j], inputs[j], -input_node]);
                 }
                 for j in 0..i {
-                    // connections[i][side][INPUT_COUNT+j] -> (outputs[j] = input_node)
+                    // connections[i][side][input_count+j] -> (outputs[j] = input_node)
                     sat.add_clause([
-                        -connections[i][side][INPUT_COUNT + j],
+                        -connections[i][side][input_count + j],
                         -outputs[j],
                         input_node,
                     ]);
                     sat.add_clause([
-                        -connections[i][side][INPUT_COUNT + j],
+                        -connections[i][side][input_count + j],
                         outputs[j],
                         -input_node,
                     ]);
@@ -411,14 +366,14 @@ fn create_cnf() {
     write!(f, "{}", sat).unwrap();
 }
 
-fn decode_output() {
+fn decode_output(input_count: usize, instruction_count: usize) {
     let input = include_str!("../output");
     let mut nums = input
         .split_whitespace()
         .map(|s| s.parse::<isize>().unwrap())
         .skip(2);
 
-    for i in 0..INSTRUCTION_COUNT {
+    for i in 0..instruction_count {
         print!("truth table {i}: ");
         for _ in 0..8 {
             print!("{}", (nums.next().unwrap() > 0) as u8)
@@ -426,7 +381,7 @@ fn decode_output() {
         println!();
         for j in 0..3 {
             print!("input {j}: ");
-            for _ in 0..INPUT_COUNT + i {
+            for _ in 0..input_count + i {
                 print!("{}", (nums.next().unwrap() > 0) as u8)
             }
             println!();
