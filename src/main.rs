@@ -274,17 +274,17 @@ fn create_cnf() {
             }
         }
 
-        for x in 1..(INPUT_COUNT + i) {
-            for y in 0..=x {
-                sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
-            }
-        }
-
-        for y in 1..(INPUT_COUNT + i) {
-            for z in 0..=y {
-                sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
-            }
-        }
+    //     for x in 1..(INPUT_COUNT + i) {
+    //         for y in 0..=x {
+    //             sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
+    //         }
+    //     }
+    //
+    //     for y in 1..(INPUT_COUNT + i) {
+    //         for z in 0..=y {
+    //             sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
+    //         }
+    //     }
     }
 
     for input in 0..(1 << INPUT_COUNT) {
