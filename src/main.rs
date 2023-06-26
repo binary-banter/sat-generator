@@ -3,8 +3,8 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::Write;
 
-const INPUT_COUNT: usize = 9;
-const INSTRUCTION_COUNT: usize = 9;
+const INPUT_COUNT: usize = 6;
+const INSTRUCTION_COUNT: usize = 6;
 
 fn target_tt() -> Vec<bool> {
     to_truth_table::<INPUT_COUNT>(target)
@@ -71,69 +71,69 @@ fn to_truth_table<const N: usize>(f: impl Fn(u32) -> bool) -> Vec<bool> {
 
 fn add_our_solution_clauses(sat: &mut Sat, truth_tables: &Vec<Vec<isize>>, connections: &Vec<[Vec<isize>; 3]>) {
     // asm("lop3.b32 %0, %1, %2, %3, 0b10010110;" : "=r"(a8) : "r"(a2), "r"(a1), "r"(a0));
-    sat.add_clause([-truth_tables[0][7]]);
-    sat.add_clause([ truth_tables[0][6]]);
-    sat.add_clause([ truth_tables[0][5]]);
-    sat.add_clause([-truth_tables[0][4]]);
-    sat.add_clause([ truth_tables[0][3]]);
-    sat.add_clause([-truth_tables[0][2]]);
-    sat.add_clause([-truth_tables[0][1]]);
-    sat.add_clause([ truth_tables[0][0]]);
-    sat.add_clause([connections[0][2][1]]); // a0
-    sat.add_clause([connections[0][1][2]]); // a1
-    sat.add_clause([connections[0][0][3]]); // a2
+    // sat.add_clause([-truth_tables[0][7]]);
+    // sat.add_clause([ truth_tables[0][6]]);
+    // sat.add_clause([ truth_tables[0][5]]);
+    // sat.add_clause([-truth_tables[0][4]]);
+    // sat.add_clause([ truth_tables[0][3]]);
+    // sat.add_clause([-truth_tables[0][2]]);
+    // sat.add_clause([-truth_tables[0][1]]);
+    // sat.add_clause([ truth_tables[0][0]]);
+    // sat.add_clause([connections[0][2][1]]); // a0
+    // sat.add_clause([connections[0][1][2]]); // a1
+    // sat.add_clause([connections[0][0][3]]); // a2
 
     // asm("lop3.b32 %0, %1, %2, %3, 0b11101000;" : "=r"(b0) : "r"(a2), "r"(a1), "r"(a0));
-    sat.add_clause([-truth_tables[1][7]]);
-    sat.add_clause([-truth_tables[1][6]]);
-    sat.add_clause([-truth_tables[1][5]]);
-    sat.add_clause([ truth_tables[1][4]]);
-    sat.add_clause([-truth_tables[1][3]]);
-    sat.add_clause([ truth_tables[1][2]]);
-    sat.add_clause([ truth_tables[1][1]]);
-    sat.add_clause([ truth_tables[1][0]]);
-    sat.add_clause([connections[1][2][1]]); // a0
-    sat.add_clause([connections[1][1][2]]); // a1
-    sat.add_clause([connections[1][0][3]]); // a2
+    // sat.add_clause([-truth_tables[1][7]]);
+    // sat.add_clause([-truth_tables[1][6]]);
+    // sat.add_clause([-truth_tables[1][5]]);
+    // sat.add_clause([ truth_tables[1][4]]);
+    // sat.add_clause([-truth_tables[1][3]]);
+    // sat.add_clause([ truth_tables[1][2]]);
+    // sat.add_clause([ truth_tables[1][1]]);
+    // sat.add_clause([ truth_tables[1][0]]);
+    // sat.add_clause([connections[1][2][1]]); // a0
+    // sat.add_clause([connections[1][1][2]]); // a1
+    // sat.add_clause([connections[1][0][3]]); // a2
 
     // asm("lop3.b32 %0, %1, %2, %3, 0b10010110;" : "=r"(a9) : "r"(a5), "r"(a4), "r"(a3));
-    sat.add_clause([-truth_tables[2][7]]);
-    sat.add_clause([ truth_tables[2][6]]);
-    sat.add_clause([ truth_tables[2][5]]);
-    sat.add_clause([-truth_tables[2][4]]);
-    sat.add_clause([ truth_tables[2][3]]);
-    sat.add_clause([-truth_tables[2][2]]);
-    sat.add_clause([-truth_tables[2][1]]);
-    sat.add_clause([ truth_tables[2][0]]);
-    sat.add_clause([connections[2][2][4]]); // a3
-    sat.add_clause([connections[2][1][5]]); // a4
-    sat.add_clause([connections[2][0][6]]); // a5
+    // sat.add_clause([-truth_tables[2][7]]);
+    // sat.add_clause([ truth_tables[2][6]]);
+    // sat.add_clause([ truth_tables[2][5]]);
+    // sat.add_clause([-truth_tables[2][4]]);
+    // sat.add_clause([ truth_tables[2][3]]);
+    // sat.add_clause([-truth_tables[2][2]]);
+    // sat.add_clause([-truth_tables[2][1]]);
+    // sat.add_clause([ truth_tables[2][0]]);
+    // sat.add_clause([connections[2][2][4]]); // a3
+    // sat.add_clause([connections[2][1][5]]); // a4
+    // sat.add_clause([connections[2][0][6]]); // a5
 
     // asm("lop3.b32 %0, %1, %2, %3, 0b11101000;" : "=r"(b1) : "r"(a5), "r"(a4), "r"(a3));
-    sat.add_clause([-truth_tables[3][7]]);
-    sat.add_clause([-truth_tables[3][6]]);
-    sat.add_clause([-truth_tables[3][5]]);
-    sat.add_clause([ truth_tables[3][4]]);
-    sat.add_clause([-truth_tables[3][3]]);
-    sat.add_clause([ truth_tables[3][2]]);
-    sat.add_clause([ truth_tables[3][1]]);
-    sat.add_clause([ truth_tables[3][0]]);
-    sat.add_clause([connections[3][2][4]]); // a3
-    sat.add_clause([connections[3][1][5]]); // a4
-    sat.add_clause([connections[3][0][6]]); // a5
+    // sat.add_clause([-truth_tables[3][7]]);
+    // sat.add_clause([-truth_tables[3][6]]);
+    // sat.add_clause([-truth_tables[3][5]]);
+    // sat.add_clause([ truth_tables[3][4]]);
+    // sat.add_clause([-truth_tables[3][3]]);
+    // sat.add_clause([ truth_tables[3][2]]);
+    // sat.add_clause([ truth_tables[3][1]]);
+    // sat.add_clause([ truth_tables[3][0]]);
+    // sat.add_clause([connections[3][2][4]]); // a3
+    // sat.add_clause([connections[3][1][5]]); // a4
+    // sat.add_clause([connections[3][0][6]]); // a5
 
     // asm("lop3.b32 %0, %1, %2, %3, 0b10010110;" : "=r"(aA) : "r"(a8), "r"(a7), "r"(a6));
-    sat.add_clause([-truth_tables[4][7]]);
-    sat.add_clause([ truth_tables[4][6]]);
-    sat.add_clause([ truth_tables[4][5]]);
-    sat.add_clause([-truth_tables[4][4]]);
-    sat.add_clause([ truth_tables[4][3]]);
-    sat.add_clause([-truth_tables[4][2]]);
-    sat.add_clause([-truth_tables[4][1]]);
-    sat.add_clause([ truth_tables[4][0]]);
-    sat.add_clause([connections[4][2][7]]); // a6
-    sat.add_clause([connections[4][1][8]]); // a7
-    sat.add_clause([connections[4][0][9]]); // a8
+    // sat.add_clause([-truth_tables[4][7]]);
+    // sat.add_clause([ truth_tables[4][6]]);
+    // sat.add_clause([ truth_tables[4][5]]);
+    // sat.add_clause([-truth_tables[4][4]]);
+    // sat.add_clause([ truth_tables[4][3]]);
+    // sat.add_clause([-truth_tables[4][2]]);
+    // sat.add_clause([-truth_tables[4][1]]);
+    // sat.add_clause([ truth_tables[4][0]]);
+    // sat.add_clause([connections[4][2][7]]); // a6
+    // sat.add_clause([connections[4][1][8]]); // a7
+    // sat.add_clause([connections[4][0][9]]); // a8
 
     // asm("lop3.b32 %0, %1, %2, %3, 0b11101000;" : "=r"(b2) : "r"(a8), "r"(a7), "r"(a6));
     // sat.add_clause([-truth_tables[5][7]]);
