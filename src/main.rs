@@ -3,8 +3,8 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::Write;
 
-const INPUT_COUNT: usize = 6;
-const INSTRUCTION_COUNT: usize = 6;
+const INPUT_COUNT: usize = 8;
+const INSTRUCTION_COUNT: usize = 7;
 
 fn target_tt() -> Vec<bool> {
     to_truth_table::<INPUT_COUNT>(target)
@@ -274,18 +274,68 @@ fn create_cnf() {
             }
         }
 
-    //     for x in 1..(INPUT_COUNT + i) {
-    //         for y in 0..=x {
-    //             sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
-    //         }
-    //     }
-    //
-    //     for y in 1..(INPUT_COUNT + i) {
-    //         for z in 0..=y {
-    //             sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
-    //         }
-    //     }
+        // Prune: Inputs are ordered small...large
+        for x in 1..(INPUT_COUNT + i) {
+            for y in 0..=x {
+                sat.add_clause([-connections[i][0][x], -connections[i][1][y]]);
+            }
+        }
+        for y in 1..(INPUT_COUNT + i) {
+            for z in 0..=y {
+                sat.add_clause([-connections[i][1][y], -connections[i][2][z]]);
+            }
+        }
+
+        // Prune: Inputs 0..8 are used in order
+        for y in 2..INPUT_COUNT{
+            for side in 0..3 {
+                let mut below = vec![-connections[i][side][y]];
+                for j in 0..=i {
+                    for j_side in 0..3 {
+                        below.push(connections[j][j_side][y - 1]);
+                    }
+                }
+                sat.add_clause(below);
+            }
+        }
+
+        // Prune: Instructions are used in order
+        for y in INPUT_COUNT+1..INPUT_COUNT + i{
+            for side in 0..3 {
+                let mut below = vec![-connections[i][side][y]];
+                for j in (y - INPUT_COUNT + 1)..=i {
+                    for j_side in 0..3 {
+                        below.push(connections[j][j_side][y - 1]);
+                    }
+                }
+                sat.add_clause(below);
+            }
+        }
     }
+
+    // Prune: Inputs are all used
+    for input in 0..INPUT_COUNT {
+        let mut vec = Vec::new();
+        for i in 0..INSTRUCTION_COUNT {
+            for side in 0..3 {
+                vec.push(connections[i][side][input]);
+            }
+        }
+        sat.add_clause(vec);
+    }
+
+    // Prune: All outputs of instructions are used
+    for i in 0 .. INSTRUCTION_COUNT - 1 {
+        let mut vec = Vec::new();
+        for j in i+1 .. INSTRUCTION_COUNT {
+            for side in 0..3 {
+                vec.push(connections[j][side][i + INPUT_COUNT]);
+            }
+        }
+        sat.add_clause(vec);
+    }
+
+
 
     for input in 0..(1 << INPUT_COUNT) {
         let mut inputs = vec![];
