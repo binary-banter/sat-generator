@@ -48,6 +48,13 @@ fn main() {
             outputs.push(cnf.new_variable());
         }
 
+        // Generate constraint that the final output of the network is correct.
+        if game_of_life_step(excitation) {
+            cnf.add_clause(outputs[args.instructions - 1]);
+        } else {
+            cnf.add_clause(-outputs[args.instructions - 1]);
+        }
+
         for _ in 0..args.instructions {
 
         }
@@ -59,6 +66,11 @@ fn main() {
     }
 
     println!("{cnf}");
+}
+
+fn game_of_life_step(excitation: usize) -> bool{
+    let count = (excitation & !1).count_ones();
+    count == 3 || (excitation & 1 != 0 && count == 2)
 }
 
 fn resolve(cnf: CNF) {
