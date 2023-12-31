@@ -1,12 +1,13 @@
 use std::fmt::{Display, Formatter};
+use std::iter::Sum;
 use std::ops::{Add, Neg, Sub};
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Default)]
-pub struct CNF<'p> {
+pub struct CNF {
     variable_count: usize,
     clauses: Vec<Clause>,
-    names: Vec<(Variable, &'p str)>,
+    names: Vec<(Variable, String)>,
 }
 
 #[derive(Default)]
@@ -15,10 +16,10 @@ pub struct Clause(Vec<Literal>);
 #[derive(Copy, Clone)]
 pub struct Variable(usize);
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct Literal(isize);
 
-impl Display for CNF<'_> {
+impl Display for CNF {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for (variable, name) in &self.names {
             writeln!(f, "c {name} := {variable}")?;
@@ -55,7 +56,7 @@ impl Display for Literal {
     }
 }
 
-impl<'p> CNF<'p> {
+impl CNF {
     pub fn add_clause(&mut self, clause: impl Into<Clause>) {
         self.clauses.push(clause.into());
     }
@@ -65,10 +66,10 @@ impl<'p> CNF<'p> {
         Variable::new(self.variable_count)
     }
 
-    pub fn new_named_variable(&mut self, ident: &'p str) -> Variable {
+    pub fn new_named_variable(&mut self, ident: impl Into<String>) -> Variable {
         self.variable_count += 1;
         let variable = Variable::new(self.variable_count);
-        self.names.push((variable, ident));
+        self.names.push((variable, ident.into()));
         variable
     }
 
@@ -76,7 +77,7 @@ impl<'p> CNF<'p> {
         self.variable_count
     }
 
-    pub fn names(&self) -> &Vec<(Variable, &'p str)> {
+    pub fn names(&self) -> &Vec<(Variable, String)> {
         &self.names
     }
 }
@@ -133,6 +134,14 @@ impl Add for Variable {
     }
 }
 
+impl Add for Literal {
+    type Output = Clause;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Clause(vec![self, rhs])
+    }
+}
+
 impl Add<Variable> for Clause {
     type Output = Clause;
 
@@ -151,6 +160,15 @@ impl Sub<Variable> for Clause {
     }
 }
 
+impl Add<Literal> for Clause {
+    type Output = Clause;
+
+    fn add(mut self, rhs: Literal) -> Self::Output {
+        self.0.push(rhs);
+        self
+    }
+}
+
 impl Sub<Variable> for Literal {
     type Output = Clause;
 
@@ -164,5 +182,11 @@ impl Neg for Variable {
 
     fn neg(self) -> Self::Output {
         Literal(-(self.0 as isize))
+    }
+}
+
+impl Sum<Variable> for Clause {
+    fn sum<I: Iterator<Item=Variable>>(iter: I) -> Self {
+        Self(iter.map(Into::into).collect())
     }
 }
