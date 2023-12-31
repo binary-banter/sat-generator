@@ -25,10 +25,10 @@ impl Display for CNF {
             writeln!(f, "c {name} := {variable}")?;
         }
 
-        writeln!(f, "p cnf {} {}", self.variable_count, self.clauses.len())?;
+        write!(f, "p cnf {} {}", self.variable_count, self.clauses.len())?;
 
         for clause in &self.clauses {
-            writeln!(f, "{clause}")?;
+            write!(f, "\n{clause}")?;
         }
 
         Ok(())
@@ -186,7 +186,7 @@ impl Neg for Variable {
 }
 
 impl Sum<Variable> for Clause {
-    fn sum<I: Iterator<Item=Variable>>(iter: I) -> Self {
+    fn sum<I: Iterator<Item = Variable>>(iter: I) -> Self {
         Self(iter.map(Into::into).collect())
     }
 }
