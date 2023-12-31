@@ -1,11 +1,12 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Neg, Sub};
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Default)]
 pub struct CNF<'p> {
-    variables_count: usize,
+    variable_count: usize,
     clauses: Vec<Clause>,
-    names: Vec<(Variable, &'p str)>
+    names: Vec<(Variable, &'p str)>,
 }
 
 #[derive(Default)]
@@ -23,7 +24,7 @@ impl Display for CNF<'_> {
             writeln!(f, "c {name} := {variable}")?;
         }
 
-        writeln!(f, "p cnf {} {}", self.variables_count, self.clauses.len())?;
+        writeln!(f, "p cnf {} {}", self.variable_count, self.clauses.len())?;
 
         for clause in &self.clauses {
             writeln!(f, "{clause}")?;
@@ -60,21 +61,33 @@ impl<'p> CNF<'p> {
     }
 
     pub fn new_variable(&mut self) -> Variable {
-        self.variables_count += 1;
-        Variable::new(self.variables_count)
+        self.variable_count += 1;
+        Variable::new(self.variable_count)
     }
 
     pub fn new_named_variable(&mut self, ident: &'p str) -> Variable {
-        self.variables_count += 1;
-        let variable = Variable::new(self.variables_count);
+        self.variable_count += 1;
+        let variable = Variable::new(self.variable_count);
         self.names.push((variable, ident));
         variable
+    }
+
+    pub fn variable_count(&self) -> usize {
+        self.variable_count
+    }
+
+    pub fn names(&self) -> &Vec<(Variable, &'p str)> {
+        &self.names
     }
 }
 
 impl Variable {
     fn new(index: usize) -> Self {
         Self(index)
+    }
+
+    pub fn index(&self) -> usize {
+        self.0
     }
 }
 
@@ -96,7 +109,7 @@ impl From<Variable> for Literal {
     }
 }
 
-impl Add<Variable> for Literal{
+impl Add<Variable> for Literal {
     type Output = Clause;
 
     fn add(self, rhs: Variable) -> Self::Output {
@@ -104,15 +117,15 @@ impl Add<Variable> for Literal{
     }
 }
 
-impl Sub for Variable{
+impl Sub for Variable {
     type Output = Clause;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Clause(vec![self.into(), - rhs])
+        Clause(vec![self.into(), -rhs])
     }
 }
 
-impl Add for Variable{
+impl Add for Variable {
     type Output = Clause;
 
     fn add(self, rhs: Self) -> Self::Output {
