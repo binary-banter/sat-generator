@@ -42,11 +42,11 @@ impl LUT3 {
             }
         }
 
-        // Prune: Inputs nodes must be ordered.
+        // Prune: Input nodes must be ordered.
         for i in 0..input_nodes[0].len() {
             for j in 0..i {
-                cnf.add_clause(-input_nodes[0][j] - input_nodes[1][i]);
-                cnf.add_clause(-input_nodes[1][j] - input_nodes[2][i]);
+                cnf.add_clause(-input_nodes[0][i] - input_nodes[1][j]);
+                cnf.add_clause(-input_nodes[1][i] - input_nodes[2][j]);
             }
         }
 
@@ -57,22 +57,14 @@ impl LUT3 {
         &self,
         cnf: &mut CNF,
         lut_inputs: [Variable; 3],
-        inputs: &[Variable],
-        outputs: &[Variable],
-        args: &Args,
+        state: &[Variable],
     ) {
         for (side, lup_input) in lut_inputs.into_iter().enumerate() {
-            for (i, input) in inputs.iter().cloned().enumerate().take(args.input_count) {
+            let index = self.input_nodes[0].len();
+            for (i, input) in state.iter().cloned().enumerate().take(index) {
                 let input_node = self.input_nodes[side][i];
                 cnf.add_clause(-input_node + input - lup_input);
                 cnf.add_clause(-input_node - input + lup_input);
-            }
-
-            let index = self.input_nodes[0].len() - args.input_count;
-            for (i, output) in outputs.iter().cloned().enumerate().take(index) {
-                let input_node = self.input_nodes[side][i + args.input_count];
-                cnf.add_clause(-input_node + output - lup_input);
-                cnf.add_clause(-input_node - output + lup_input);
             }
         }
     }
