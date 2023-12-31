@@ -1,5 +1,6 @@
 use crate::cnf::{Clause, Variable, CNF};
 use crate::Args;
+use itertools::Itertools;
 
 pub struct LUT3 {
     /// Nodes that connect to the input sides.
@@ -34,36 +35,49 @@ impl LUT3 {
             cnf.add_clause(side.iter().cloned().sum::<Clause>());
         }
 
-        Self {
-            input_nodes,
-            table,
+        // Prune: Each side must have at most one connection.
+        for side in &input_nodes {
+            for (x, y) in side.iter().cloned().tuple_combinations() {
+                cnf.add_clause(-x - y);
+            }
         }
+
+        // Prune: Inputs nodes must be ordered.
+        for i in 0..input_nodes[0].len() {
+            for j in 0..i {
+                cnf.add_clause(-input_nodes[0][j] - input_nodes[1][i]);
+                cnf.add_clause(-input_nodes[1][j] - input_nodes[2][i]);
+            }
+        }
+
+        Self { input_nodes, table }
     }
 
     pub fn constrain_connections(
         &self,
         cnf: &mut CNF,
         lut_inputs: [Variable; 3],
-        inputs: &Vec<Variable>,
-        outputs: &Vec<Variable>,
+        inputs: &[Variable],
+        outputs: &[Variable],
         args: &Args,
     ) {
-        for side in 0..3 {
-            for i in 0..args.input_count {
+        for (side, lup_input) in lut_inputs.into_iter().enumerate() {
+            for (i, input) in inputs.iter().cloned().enumerate().take(args.input_count) {
                 let input_node = self.input_nodes[side][i];
-                cnf.add_clause(-input_node + inputs[i] - lut_inputs[side]);
-                cnf.add_clause(-input_node - inputs[i] + lut_inputs[side]);
+                cnf.add_clause(-input_node + input - lup_input);
+                cnf.add_clause(-input_node - input + lup_input);
             }
 
-            for i in 0..self.input_nodes[0].len() - args.input_count {
+            let index = self.input_nodes[0].len() - args.input_count;
+            for (i, output) in outputs.iter().cloned().enumerate().take(index) {
                 let input_node = self.input_nodes[side][i + args.input_count];
-                cnf.add_clause(-input_node + outputs[i] - lut_inputs[side]);
-                cnf.add_clause(-input_node - outputs[i] + lut_inputs[side]);
+                cnf.add_clause(-input_node + output - lup_input);
+                cnf.add_clause(-input_node - output + lup_input);
             }
         }
     }
 
-    pub fn constrain_output(&self, cnf: &mut CNF, inputs: [Variable;3], output: Variable) {
+    pub fn constrain_output(&self, cnf: &mut CNF, inputs: [Variable; 3], output: Variable) {
         for (i, table_entry) in self.table.iter().cloned().enumerate() {
             let input_0 = if i & 1 == 0 { inputs[0].into() } else { -inputs[0] };
             let input_1 = if i & 2 == 0 { inputs[1].into() } else { -inputs[1] };
@@ -72,5 +86,9 @@ impl LUT3 {
             cnf.add_clause(input_2 + input_1 + input_0 + output - table_entry);
             cnf.add_clause(input_2 + input_1 + input_0 - output + table_entry);
         }
+    }
+
+    pub fn input_node(&self, side: usize, index: usize) -> Option<Variable> {
+        self.input_nodes[side].get(index).cloned()
     }
 }
