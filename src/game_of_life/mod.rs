@@ -1,6 +1,7 @@
 use crate::cnf::{Clause, CNF};
 use crate::game_of_life::lut::LUT3;
 use crate::Args;
+use itertools::Itertools;
 
 mod lut;
 
@@ -12,15 +13,29 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
         luts.push(LUT3::new(&mut cnf, index, args));
     }
 
-    // Prune: All inputs and intermediate results must used at least once.
-    for index in 0..args.input_count + args.instruction_count - 1 {
-        let mut input_nodes = Vec::new();
-        for lut in luts.iter().take(args.instruction_count) {
-            for side in 0..3 {
-                input_nodes.push(lut.input_node(side, index));
-            }
-        }
-        cnf.add_clause(input_nodes.into_iter().flatten().sum::<Clause>())
+    // Prune: Center must be used.
+    cnf.add_clause(
+        luts.iter()
+            .cartesian_product(0..3)
+            .map(|(lut, side)| lut.input_node(side, 0).unwrap())
+            .sum::<Clause>(),
+    );
+
+    // Prune: Last input must be used.
+    cnf.add_clause(
+        luts.iter()
+            .cartesian_product(0..3)
+            .map(|(lut, side)| lut.input_node(side, args.input_count - 1).unwrap())
+            .sum::<Clause>(),
+    );
+
+    // Prune: Last instruction must use penultimate output.
+    if args.instruction_count > 1 {
+        cnf.add_clause(
+            luts[args.instruction_count - 1]
+                .input_node(2, args.input_count + args.instruction_count - 2)
+                .unwrap(),
+        );
     }
 
     // Prune: Use inputs, except center, and intermediate results in order.
