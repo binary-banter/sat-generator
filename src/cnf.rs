@@ -178,3 +178,9 @@ impl Sum<Variable> for Clause {
         Self(iter.map(Into::into).collect())
     }
 }
+
+impl Sum<Literal> for Clause {
+    fn sum<I: Iterator<Item = Literal>>(iter: I) -> Self {
+        Self(iter.collect())
+    }
+}

@@ -23,6 +23,46 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
         cnf.add_clause(input_nodes.into_iter().flatten().sum::<Clause>())
     }
 
+    // Prune: Use inputs, except center, and intermediate results in order.
+    // Idea: For every instruction that uses node index 'n', there must a previous instruction using node index 'n - 1'.
+    for instruction in 0..args.instruction_count {
+        // Use inputs, except center, in order.
+        for input in 2..args.input_count {
+            for side in 0..3 {
+                // Node index `n`.
+                let index = luts[instruction].input_node(side, input).unwrap();
+
+                // Collect all node indices `n - 1` in previous (and current) instruction.
+                let mut before = Vec::new();
+                for lut in luts.iter().take(instruction + 1) {
+                    for side_prev in 0..3 {
+                        before.push(lut.input_node(side_prev, input - 1).unwrap());
+                    }
+                }
+
+                cnf.add_clause(before.into_iter().sum::<Clause>() - index);
+            }
+        }
+
+        // Use intermediate results in order.
+        for output in args.input_count + 1..args.input_count + instruction {
+            for side in 0..3 {
+                // Node index `n`.
+                let index = luts[instruction].input_node(side, output).unwrap();
+
+                // Collect all node indices `n - 1` in previous (and current) instruction.
+                let mut before = Vec::new();
+                for prev_instr in (output - args.input_count + 1)..=instruction {
+                    for side_prev in 0..3 {
+                        before.push(luts[prev_instr].input_node(side_prev, output - 1).unwrap());
+                    }
+                }
+
+                cnf.add_clause(before.into_iter().sum::<Clause>() - index);
+            }
+        }
+    }
+
     // Add variables and constraints for every possible excitation to the network.
     for excitation in 0..1 << args.input_count {
         // Generate variables for every input and output.
