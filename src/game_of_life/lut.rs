@@ -44,7 +44,7 @@ impl LUT3 {
 
         // Prune: Input nodes must be ordered.
         for i in 0..input_nodes[0].len() {
-            for j in 0..i {
+            for j in 0..=i {
                 cnf.add_clause(-input_nodes[0][i] - input_nodes[1][j]);
                 cnf.add_clause(-input_nodes[1][i] - input_nodes[2][j]);
             }
