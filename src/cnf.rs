@@ -72,23 +72,11 @@ impl CNF {
         self.names.push((variable, ident.into()));
         variable
     }
-
-    pub fn variable_count(&self) -> usize {
-        self.variable_count
-    }
-
-    pub fn names(&self) -> &Vec<(Variable, String)> {
-        &self.names
-    }
 }
 
 impl Variable {
     fn new(index: usize) -> Self {
         Self(index)
-    }
-
-    pub fn index(&self) -> usize {
-        self.0
     }
 }
 

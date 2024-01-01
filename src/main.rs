@@ -1,7 +1,7 @@
-use crate::cnf::CNF;
 use crate::game_of_life::generate_game_of_life_cnf;
 use clap::Parser;
-use std::io::{read_to_string, stdin};
+use std::path::Path;
+use std::{fs, io};
 
 mod cnf;
 mod game_of_life;
@@ -9,34 +9,35 @@ mod game_of_life;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[arg(default_value_t = 9)]
     input_count: usize,
+    #[arg(default_value_t = 9)]
     instruction_count: usize,
-    #[arg(short, long)]
-    resolve: bool,
+    #[arg(short, long, value_name = "CNF")]
+    resolve: Option<String>,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let game_of_life_cnf = generate_game_of_life_cnf(&args);
-
-    if args.resolve {
-        resolve(game_of_life_cnf);
+    if let Some(cnf) = args.resolve {
+        resolve(cnf);
         return;
     }
 
-    println!("{game_of_life_cnf}");
+    println!("{}", generate_game_of_life_cnf(&args));
 }
 
-fn resolve(cnf: CNF) {
-    let assignments = read_to_string(stdin())
-        .unwrap()
-        .split_whitespace()
-        .take(cnf.variable_count())
-        .map(|assignment| !assignment.starts_with('-'))
-        .collect::<Vec<_>>();
+fn resolve(cnf: String) {
+    let bindings = fs::read_to_string(Path::new(&cnf)).unwrap();
+    let bindings = bindings.lines().take_while(|line| line.starts_with('c'));
 
-    for (variable, name) in cnf.names() {
-        println!("{name} := {}", assignments[variable.index() - 1])
+    let assignments = io::read_to_string(io::stdin()).unwrap();
+    let assignments = assignments.split_whitespace().collect::<Vec<_>>();
+
+    for binding in bindings {
+        let (name, index) = binding.split_once(" := ").unwrap();
+        let assignment = !assignments[index.parse::<usize>().unwrap() - 1].starts_with('-');
+        println!("{name} := {assignment}");
     }
 }
