@@ -38,6 +38,17 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
         );
     }
 
+    // Prune: Tail ordering.
+    for (first, second) in luts.iter().tuple_windows() {
+        for i in 0..first.input_nodes() {
+            for j in 0..i {
+                let first = first.input_node(2, i).unwrap();
+                let second = second.input_node(2, j).unwrap();
+                cnf.add_clause(-first - second);
+            }
+        }
+    }
+
     // Prune: Use inputs, except center, and intermediate results in order.
     // Idea: For every instruction that uses node index 'n', there must a previous instruction using node index 'n - 1'.
     for instruction in 0..args.instruction_count {

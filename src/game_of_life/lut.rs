@@ -83,4 +83,8 @@ impl LUT3 {
     pub fn input_node(&self, side: usize, index: usize) -> Option<Variable> {
         self.input_nodes[side].get(index).cloned()
     }
+
+    pub fn input_nodes(&self) -> usize {
+        self.input_nodes.len()
+    }
 }
