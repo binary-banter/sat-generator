@@ -30,16 +30,9 @@ impl LUT3 {
             table.push(cnf.new_named_variable(format!("lut_{index}_table_{i}")));
         }
 
-        // Generate constraint that each side must have at least one connection.
+        // Generate constraint that each side must have exactly one connection.
         for side in &input_nodes {
-            cnf.add_clause(side.iter().cloned().sum::<Clause>());
-        }
-
-        // Prune: Each side must have at most one connection.
-        for side in &input_nodes {
-            for (x, y) in side.iter().cloned().tuple_combinations() {
-                cnf.add_clause(-x - y);
-            }
+            cnf.exactly_once(side)
         }
 
         // Prune: Input nodes must be ordered.
