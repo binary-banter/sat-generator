@@ -79,3 +79,8 @@ fn step_6_6() {
 fn step_7_7() {
     step_n_m(7, 7);
 }
+
+#[test]
+fn step_8_8() {
+    step_n_m(8, 8);
+}

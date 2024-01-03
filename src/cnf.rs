@@ -1,7 +1,7 @@
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::iter::Sum;
 use std::ops::{Add, Neg, Sub};
-use itertools::Itertools;
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Default)]
@@ -87,7 +87,6 @@ impl CNF {
         self.exactly_once_aux(commander, choices);
     }
 
-
     fn exactly_once_aux(&mut self, commander: Variable, choices: &[Variable]) {
         if choices.len() <= 3 {
             // 1.
@@ -96,14 +95,14 @@ impl CNF {
             }
 
             // 2.
-            self.add_clause(choices.iter().cloned().sum::<Clause>() -commander);
+            self.add_clause(choices.iter().cloned().sum::<Clause>() - commander);
 
             // 3.
-            for x in choices {
-                self.add_clause(commander - x.clone());
+            for x in choices.iter().cloned() {
+                self.add_clause(commander - x);
             }
 
-            return
+            return;
         }
 
         let d1 = choices.len() / 3;
@@ -116,7 +115,7 @@ impl CNF {
         self.exactly_once_aux(commander_1, &choices[d1..d2]);
 
         let commander_2 = self.new_variable();
-        self.exactly_once_aux(commander_2,  &choices[d2..]);
+        self.exactly_once_aux(commander_2, &choices[d2..]);
 
         let choices = [commander_0, commander_1, commander_2];
 
@@ -126,11 +125,11 @@ impl CNF {
         }
 
         // 2.
-        self.add_clause(choices.iter().cloned().sum::<Clause>() -commander);
+        self.add_clause(choices.iter().cloned().sum::<Clause>() - commander);
 
         // 3.
-        for x in choices {
-            self.add_clause(commander - x.clone());
+        for x in choices.iter().cloned() {
+            self.add_clause(commander - x);
         }
 
         // 4.

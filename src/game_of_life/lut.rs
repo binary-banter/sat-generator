@@ -1,6 +1,5 @@
-use crate::cnf::{Clause, Variable, CNF};
+use crate::cnf::{Variable, CNF};
 use crate::Args;
-use itertools::Itertools;
 
 pub struct LUT3 {
     /// Nodes that connect to the input sides.
