@@ -137,6 +137,39 @@ impl CNF {
         self.add_clause(-commander_0 - commander_2);
         self.add_clause(-commander_1 - commander_2);
     }
+
+    pub fn less_than(&mut self, lhs_bits: &[Variable], rhs_bits: &[Variable]) {
+        let mut ts = Vec::new();
+
+        let lhs_bits = lhs_bits.iter().rev().cloned().collect::<Vec<_>>();
+        let rhs_bits = rhs_bits.iter().rev().cloned().collect::<Vec<_>>();
+
+        for _ in 0..lhs_bits.len() {
+            ts.push(self.new_variable());
+        }
+
+        // t_{i+1} => t_{i}
+        for (first, second) in ts.iter().cloned().tuple_windows() {
+            self.add_clause(-second + first);
+        }
+
+        for i in 0..ts.len() {
+            // t_{i} => n_{i} = m_{i}
+            self.add_clause(-ts[i] + lhs_bits[i] - rhs_bits[i]);
+            self.add_clause(-ts[i] - lhs_bits[i] + rhs_bits[i]);
+        }
+
+        // t_{i-1} /\ -t_{i} => n_{i} = 0 /\ m_{i} = 1
+        for i in 1..ts.len() {
+            self.add_clause(-ts[i - 1] + ts[i] - lhs_bits[i]);
+            self.add_clause(-ts[i - 1] + ts[i] + rhs_bits[i]);
+        }
+
+        self.add_clause(ts[0] - lhs_bits[0]);
+        self.add_clause(ts[0] + rhs_bits[0]);
+
+        self.add_clause(-*ts.last().unwrap())
+    }
 }
 
 impl Variable {

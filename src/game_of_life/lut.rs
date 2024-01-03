@@ -35,12 +35,8 @@ impl LUT3 {
         }
 
         // Prune: Input nodes must be ordered.
-        for i in 0..input_nodes[0].len() {
-            for j in 0..=i {
-                cnf.add_clause(-input_nodes[0][i] - input_nodes[1][j]);
-                cnf.add_clause(-input_nodes[1][i] - input_nodes[2][j]);
-            }
-        }
+        cnf.less_than(&input_nodes[0], &input_nodes[1]);
+        cnf.less_than(&input_nodes[1], &input_nodes[2]);
 
         Self { input_nodes, table }
     }
@@ -78,5 +74,9 @@ impl LUT3 {
 
     pub fn input_nodes(&self) -> usize {
         self.input_nodes.len()
+    }
+
+    pub fn side(&self, side: usize) -> &Vec<Variable> {
+        &self.input_nodes[side]
     }
 }
