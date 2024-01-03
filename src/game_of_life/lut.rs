@@ -72,10 +72,6 @@ impl LUT3 {
         self.input_nodes[side].get(index).cloned()
     }
 
-    pub fn input_nodes(&self) -> usize {
-        self.input_nodes.len()
-    }
-
     pub fn side(&self, side: usize) -> &Vec<Variable> {
         &self.input_nodes[side]
     }

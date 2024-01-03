@@ -138,7 +138,19 @@ impl CNF {
         self.add_clause(-commander_1 - commander_2);
     }
 
-    pub fn less_than(&mut self, lhs_bits: &[Variable], rhs_bits: &[Variable]) {
+    pub fn less_than_equal(&mut self, lhs_bits: &[Variable], rhs_bits: &[Variable]) {
+        self.less_than_equal_aux(lhs_bits, rhs_bits);
+    }
+
+    fn less_than_equal_aux(&mut self, lhs_bits: &[Variable], rhs_bits: &[Variable]) -> Variable {
+        let mut lhs_bits = Vec::from(lhs_bits);
+
+        for _ in lhs_bits.len()..rhs_bits.len() {
+            let temp = self.new_variable();
+            lhs_bits.push(temp);
+            self.add_clause(-temp);
+        }
+
         let mut ts = Vec::new();
 
         let lhs_bits = lhs_bits.iter().rev().cloned().collect::<Vec<_>>();
@@ -154,12 +166,12 @@ impl CNF {
         }
 
         for i in 0..ts.len() {
-            // t_{i} => n_{i} = m_{i}
+            // t_{i} => lhs_{i} = rhs_{i}
             self.add_clause(-ts[i] + lhs_bits[i] - rhs_bits[i]);
             self.add_clause(-ts[i] - lhs_bits[i] + rhs_bits[i]);
         }
 
-        // t_{i-1} /\ -t_{i} => n_{i} = 0 /\ m_{i} = 1
+        // t_{i-1} /\ -t_{i} => lhs_{i} = 0 /\ rhs_{i} = 1
         for i in 1..ts.len() {
             self.add_clause(-ts[i - 1] + ts[i] - lhs_bits[i]);
             self.add_clause(-ts[i - 1] + ts[i] + rhs_bits[i]);
@@ -168,7 +180,14 @@ impl CNF {
         self.add_clause(ts[0] - lhs_bits[0]);
         self.add_clause(ts[0] + rhs_bits[0]);
 
-        self.add_clause(-*ts.last().unwrap())
+        ts.pop().unwrap()
+    }
+
+    pub fn less_than(&mut self, lhs_bits: &[Variable], rhs_bits: &[Variable]) {
+        let t = self.less_than_equal_aux(lhs_bits, rhs_bits);
+
+        // lhs != rhs
+        self.add_clause(-t)
     }
 }
 

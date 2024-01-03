@@ -40,13 +40,7 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
 
     // Prune: Tail ordering.
     for (first, second) in luts.iter().tuple_windows() {
-        for i in 0..first.input_nodes() {
-            for j in 0..i {
-                let first = first.input_node(2, i).unwrap();
-                let second = second.input_node(2, j).unwrap();
-                cnf.add_clause(-first - second);
-            }
-        }
+        cnf.less_than_equal(first.side(2), second.side(2));
     }
 
     // Prune: Use inputs, except center, and intermediate results in order.
