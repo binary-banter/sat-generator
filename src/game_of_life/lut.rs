@@ -5,7 +5,7 @@ pub struct LUT3 {
     /// Nodes that connect to the input sides.
     input_nodes: Vec<Vec<Variable>>,
     /// Truth table used by the LUT3 instruction.
-    pub(crate) table: Vec<Variable>,
+    table: Vec<Variable>,
 }
 
 impl LUT3 {
