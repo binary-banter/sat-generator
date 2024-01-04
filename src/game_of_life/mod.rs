@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 mod lut;
 
-pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
+pub fn generate_game_of_life_cnf(args: &Args, hardcode: u8) -> CNF {
     let mut cnf = CNF::default();
     let mut luts = Vec::new();
 
@@ -117,6 +117,16 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
             let lut_inputs = [cnf.new_variable(), cnf.new_variable(), cnf.new_variable()];
             luts[i].constrain_output(&mut cnf, lut_inputs, state[args.input_count + i]);
             luts[i].constrain_connections(&mut cnf, lut_inputs, &state)
+        }
+    }
+
+    // Hardcode last instruction
+    let lut = luts.last().unwrap();
+    for i in 0..8 {
+        if (hardcode & (1 << i)) != 0 {
+            cnf.add_clause(lut.table[i]);
+        } else {
+            cnf.add_clause(-lut.table[i]);
         }
     }
 

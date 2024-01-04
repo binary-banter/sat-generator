@@ -2,6 +2,8 @@ use crate::game_of_life::generate_game_of_life_cnf;
 use clap::Parser;
 use std::path::Path;
 use std::{fs, io};
+use std::fs::File;
+use std::io::Write;
 
 mod cnf;
 mod game_of_life;
@@ -25,7 +27,10 @@ fn main() {
         return;
     }
 
-    println!("{}", generate_game_of_life_cnf(&args));
+    for i in 0..=255 {
+        let mut file = File::create(&format!("cnfs/99_{i}.cnf")).unwrap();
+        write!(&mut file, "{}", generate_game_of_life_cnf(&args, i)).unwrap();
+    }
 }
 
 fn resolve(cnf: String) {
