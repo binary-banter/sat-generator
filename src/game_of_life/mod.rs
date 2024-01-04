@@ -13,6 +13,11 @@ pub fn generate_game_of_life_cnf(args: &Args) -> CNF {
         luts.push(LUT3::new(&mut cnf, index, args));
     }
 
+    // Prune: Break symmetries in truth tables (except last one).
+    for index in 0..args.instruction_count - 1 {
+        cnf.add_clause(-luts[index].table[0]);
+    }
+
     // Prune: Center must be used.
     cnf.add_clause(
         luts.iter()
